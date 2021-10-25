@@ -1,5 +1,3 @@
-const MAX_ITERATIONS = 100;
-
 let minA = -2;
 let maxA = 1;
 let minB = -1;
@@ -7,8 +5,10 @@ let maxB = 1;
 
 let render;
 
-let zoomPoint;
-let zoomFactor = 0.005;
+let zoomFactor;
+let maxIter;
+
+let movePoint = -1;
 
 function setup() {
   render = new GPU().createKernel(function(minA, maxA, minB, maxB, maxIter) {
@@ -39,14 +39,48 @@ function setup() {
   canvas.style.zIndex = -1;
   
   createCanvas(windowWidth, windowHeight);
-  zoomPoint = createVector(-0.10109636384562, 0.956286511080914);
+  
+  zoomFactor = createSlider(-10, 10, 5);
+  zoomFactor.position(75, height-20);
+  maxIter = createSlider(2, 1000, 100);
+  maxIter.position(322, height-20);
 }
 
 function draw() {
   clear();
-  fill(128);
-  text("FPS: " + round(frameRate()*10)/10 + " " + round(minA*1000)/1000 + " " + round(maxA*1000)/1000 + " " + round(minB*1000)/1000 + " " + round(maxB*1000)/1000, 5, 20);
+  fill(255);
+  text("Zoom Factor", 5, height-6);
+  text(zoomFactor.value()/1000, 210, height-6);
+  text("Max Iterations", 245, height-6);
+  text(maxIter.value(), 456, height-6);
   
+  if(movePoint == -1) zoomAt(createVector(-0.10109636384562, 0.956286511080914), zoomFactor.value()/1000);
+  render(minA, maxA, minB, maxB, maxIter.value());
+}
+
+function mouseWheel(e){
+  zoomAt(createVector(map(mouseX, 0, width, minA, maxA), map(height-mouseY, 0, height, minB, maxB)), e.delta > 0 ? 0.005 : -0.005); 
+}
+
+function mousePressed(){
+  if(mouseY < height-35) movePoint = createVector(map(mouseX, 0, width, minA, maxA), map(height-mouseY, 0, height, minB, maxB));
+}
+
+function mouseReleased(){
+  movePoint = -1; 
+}
+
+function mouseDragged(){
+  if(movePoint == -1) return;
+  let delta = p5.Vector.sub(createVector(map(mouseX, 0, width, minA, maxA), map(height-mouseY, 0, height, minB, maxB)), movePoint);
+  minA -= delta.x;
+  maxA -= delta.x;
+  minB += delta.y;
+  maxB += delta.y;
+  movePoint = createVector(map(mouseX, 0, width, minA, maxA), map(height-mouseY, 0, height, minB, maxB));
+}
+
+function zoomAt(zoomPoint, zoomFactor){
   //Set zoom point as origin
   minA -= zoomPoint.x;
   maxA -= zoomPoint.x;
@@ -54,13 +88,12 @@ function draw() {
   maxB += zoomPoint.y;
   //Scale by zoom factor
   minA += abs(minA)*zoomFactor;
-  maxA -= abs(maxA)*zoomFactor;
+  maxA -= maxA*zoomFactor;
   minB += abs(minB)*zoomFactor;
-  maxB -= abs(maxB)*zoomFactor;
+  maxB -= maxB*zoomFactor;
   //Retranslate back
   minA += zoomPoint.x;
   maxA += zoomPoint.x;
   minB -= zoomPoint.y;
   maxB -= zoomPoint.y;
-  render(minA, maxA, minB, maxB, 100);
 }
