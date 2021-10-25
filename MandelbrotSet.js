@@ -5,35 +5,40 @@ let maxX = 1;
 let minY = -1;
 let maxY = 1;
 
+let gpu;
+let computePoints;
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
-}
-
-
-function draw() {
-  background(0);
-  loadPixels();
-  for(let i = 0; i<width; i++){
-   for(let j = 0; j<height; j++){
-     let ca = map(i, 0, width, minX, maxX);
-     let cb = map(j, 0, height, minY, maxY);
-
+  gpu = new GPU();
+  computePoints = gpu.createKernel(function() {
+     let ca = this.thread.x/813*3-2;
+     let cb = this.thread.y/793*2-1;
      let za = 0;
      let zb = 0;
-     for(let n = 0; n<MAX_ITERATIONS; n++){
+     for(let n = 0; n<100; n++){
        //z = z^2 + c = (a+ib)^2 + c = a^2 - b^2 + 2abi + c
-       aa = za**2-zb**2;
-       bb = 2*za*zb;
+       let aa = za**2-zb**2;
+       let bb = 2*za*zb;
        za = aa + ca;
        zb = bb + cb;
        
        //Not in Mandelbrot set if |z| > 2
        if(za**2+zb**2 > 4){
-         set(i, j, map(n, 0, MAX_ITERATIONS, 0, 255));
-         break;
+         return n/100*255;
        }
      }
-   }
+     return 0;
+  }).setOutput([windowWidth, windowHeight]);
+}
+
+function draw() {
+  let p = computePoints();
+  loadPixels();
+  for(let x = 0; x<width; x++){
+    for(let y = 0; y<height; y++){
+      set(x, y, p[y][x]); 
+    }
   }
   updatePixels();
   
