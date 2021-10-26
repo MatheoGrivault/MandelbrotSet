@@ -35,6 +35,7 @@ function setup() {
         else if(H < 240) this.color(0, X, 1, 1);
         else if(H < 300) this.color(X, 0, 1, 1);
         else this.color(1, 0, X, 1);
+        break;
       }
     }
   }).setOutput([windowWidth, windowHeight]).setConstants({w: windowWidth, h: windowHeight}).setGraphical(true);
