@@ -78,7 +78,7 @@ function draw() {
 }
 
 function mouseWheel(e){
-  zoomAt(screenPointToComplex(mouseX, mouseY), e.delta/1000); 
+  zoomAt(screenPointToComplex(mouseX, mouseY), -e.delta/1000); 
 }
 
 function mousePressed(){
