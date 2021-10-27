@@ -9,6 +9,10 @@ let hueOffset;
 let autoZoomPoint;
 let movePoint = -1;
 
+document.oncontextmenu = function() {
+  return false;
+}
+
 function setup() {
   render = new GPU().createKernel(function(v1x, v1y, v2x, v2y, maxIter, hueOffset) {
     this.color(0, 0, 0, 1);
@@ -83,11 +87,15 @@ function mouseWheel(e){
 }
 
 function mousePressed(){
-  if(mouseY < height-35) movePoint = screenPointToComplex(mouseX, mouseY);
+  if(mouseY > height-35) return;
+  movePoint = screenPointToComplex(mouseX, mouseY);
 }
 
-function mouseReleased(){
-  movePoint = -1; 
+function mouseReleased(e){
+  if(mouseY > height-35) return;
+  //RIGHT
+  if(e.button == 2) autoZoomPoint = screenPointToComplex(mouseX, mouseY);
+  movePoint = -1;
 }
 
 function mouseDragged(){
@@ -97,10 +105,6 @@ function mouseDragged(){
   viewport[0].sub(delta);
   viewport[1].sub(delta);
   movePoint = screenPointToComplex(mouseX, mouseY);
-}
-
-function doubleClicked(){
-  autoZoomPoint = screenPointToComplex(mouseX, mouseY);
 }
 
 function screenPointToComplex(x, y){
